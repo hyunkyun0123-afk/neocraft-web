@@ -25,7 +25,7 @@
 <body>
     <div id="admin-panel">
         <div style="font-size:12px; color:#36ff36; margin-bottom:10px; text-align:center;">섭장 제어실</div>
-        <button class="admin-btn" onclick="setManual('auto')">🔄 자동 모드</button>
+        <button class="admin-btn" onclick="setManual('auto')">🔄 실시간 자동모드</button>
         <button class="admin-btn" onclick="setManual('on')">🟢 강제 온라인</button>
         <button class="admin-btn" onclick="setManual('off')">🔴 강제 점검중</button>
         <button class="admin-btn" onclick="closeAdmin()" style="background:#ff4444; border:none; margin-top:5px;">닫기</button>
@@ -65,7 +65,7 @@
         async function updateStatus() {
             const msgEl = document.getElementById('st-msg');
             
-            // 수동 모드 로직 (수동 글자 없이 깔끔하게!) 🛫🐉💵
+            // 1. 수동 모드 체크 🛫🐉💵
             if(mode === 'on') { 
                 msgEl.innerHTML = "🟢 1, 2, 3번 주소 모두 가동 중!"; 
                 msgEl.className = "green"; return; 
@@ -75,11 +75,14 @@
                 msgEl.className = "red"; return; 
             }
 
-            // 자동 모드 (API 호출) 🛫🐉💵
+            // 2. 자동 모드 (진짜 데이터 가져오기) 🛫🐉💵
             try {
-                const r = await fetch(`https://api.mcstatus.io/v2/status/java/neocraft.p-e.kr?t=${Date.now()}`);
+                // 캐시 방지를 위해 랜덤 쿼리 추가
+                const r = await fetch(`https://api.mcstatus.io/v2/status/java/neocraft.p-e.kr?nocache=${Date.now()}`);
                 const d = await r.json();
+                
                 if(d.online) {
+                    // d.players.online이 진짜 현재 인원이야! 🛫🐉💵
                     msgEl.innerHTML = `🟢 서버 가동 중! (${d.players.online}/${d.players.max}명)`;
                     msgEl.className = "green";
                 } else {
@@ -96,12 +99,11 @@
             mode = m; 
             localStorage.setItem('neo_mode', m); 
             updateStatus(); 
-            alert("상태 적용 완료!"); 
+            alert("상태 적용 완료! (모드: " + m + ")"); 
         }
         
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
 
-        // 비밀 진입: 주소창 끝에 #admin 붙이기 🛫🐉💵
         function checkAdmin() {
             if(window.location.hash === '#admin') {
                 document.getElementById('admin-panel').style.display = 'block';
@@ -111,7 +113,7 @@
         window.onhashchange = checkAdmin;
         checkAdmin();
         updateStatus();
-        setInterval(updateStatus, 15000); // 15초마다 갱신
+        setInterval(updateStatus, 10000); // 10초로 단축해서 더 빠르게 반영 🛫🐉💵
     </script>
 </body>
 </html>
