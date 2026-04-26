@@ -13,25 +13,93 @@
         .content-area { flex-grow: 1; overflow-y: auto; padding: 30px; display: none; }
         .content-area.active { display: block; }
         .intro-content { text-align: center; }
-        h1 { font-size: 56px; margin: 10px 0; text-shadow: 3px 3px 5px rgba(0,0,0,0.9); }
+        h1 { font-size: 56px; margin: 10px 0; text-shadow: 3px 3px 5px rgba(0,0,0,0.9); cursor: pointer; user-select: none; }
         .server-status { font-weight: bold; font-size: 20px; margin-bottom: 30px; transition: 0.3s; }
         .address-group { display: flex; flex-direction: column; gap: 12px; align-items: center; }
-        .address-btn { background-color: #3c3c3c; border: 1px solid #555; padding: 12px 20px; border-radius: 4px; width: 450px; display: flex; justify-content: space-between; text-decoration: none; color: white; transition: 0.2s; }
-        .address-btn:hover { background-color: #4c4c4c; border-color: #36ff36; }
-        .addr-tag { color: #888; font-size: 14px; }
+        .address-btn { background-color: #3c3c3c; border: 1px solid #555; padding: 12px 20px; border-radius: 4px; width: 450px; display: flex; justify-content: space-between; text-decoration: none; color: white; }
         .addr-val { color: #36ff36; font-family: monospace; font-weight: bold; }
         .rules-text { background-color: rgba(0,0,0,0.3); padding: 25px; border-radius: 4px; line-height: 1.8; white-space: pre-wrap; text-align: left; font-size: 15px; }
-        .rules-text h2 { color: #36ff36; border-left: 4px solid #36ff36; padding-left: 10px; margin-top: 30px; }
-        .rules-text b { color: #ffeb3b; }
         .play-bar { background-color: #2a2a2a; padding: 20px; display: flex; justify-content: center; border-top: 2px solid #444; }
-        .play-btn { background-color: #36ff36; color: black; font-size: 26px; font-weight: bold; padding: 12px 80px; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 4px 0 #28cc28; transition: 0.1s; }
-        .play-btn:active { transform: translateY(4px); box-shadow: none; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1e1e1e; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .play-btn { background-color: #36ff36; color: black; font-size: 26px; font-weight: bold; padding: 12px 80px; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 4px 0 #28cc28; }
 
-        /* 섭장 전용 관리자 패널 🛫🐉💵 */
-        #admin-panel { display: none; position: fixed; top: 20px; right: 20px; background: #1e1e1e; padding: 20px; border-radius: 12px; border: 2px solid #36ff36; z-index: 9999; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 200px; }
-        .admin-title { color: #36ff36; font-weight: bold; display: block; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        .
+        /* 관리자 패널 */
+        #admin-panel { display: none; position: fixed; top: 20px; right: 20px; background: #1e1e1e; padding: 20px; border-radius: 12px; border: 2px solid #36ff36; z-index: 9999; width: 200px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .admin-btn { width: 100%; margin-bottom: 8px; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; cursor: pointer; }
+        .admin-close { background: #ff4444 !important; border: none !important; }
+    </style>
+</head>
+<body>
+    <div id="admin-panel">
+        <span style="color:#36ff36; font-weight:bold; display:block; margin-bottom:10px; text-align:center;">섭장 관리모드</span>
+        <button class="admin-btn" onclick="setManualStatus('auto')">🔄 자동 모드</button>
+        <button class="admin-btn" onclick="setManualStatus('on')">🟢 강제 온라인</button>
+        <button class="admin-btn" onclick="setManualStatus('off')">🔴 강제 점검중</button>
+        <button class="admin-btn admin-close" onclick="closeAdmin()">닫기</button>
+    </div>
+
+    <div class="launcher-panel">
+        <div class="tab-bar">
+            <div class="tab active" onclick="openTab('intro')">소개</div>
+            <div class="tab" onclick="openTab('rules')">규칙 및 접속법</div>
+        </div>
+        <div id="intro" class="content-area active intro-content">
+            <h1 onclick="handleLogoClick()">NEOCRAFT</h1>
+            <div id="status-display" class="server-status">서버 상태 확인 중...</div>
+            <div class="address-group">
+                <div class="address-btn"><span>접속 주소 1</span><span class="addr-val">neocraft.p-e.kr</span></div>
+                <div class="address-btn"><span>접속 주소 2</span><span class="addr-val">sub.neocraft.p-e.kr</span></div>
+                <div class="address-btn"><span>접속 주소 3</span><span class="addr-val">mc.neocraft.p-e.kr</span></div>
+            </div>
+        </div>
+        <div id="rules" class="content-area">
+            <div class="rules-text">서버 규칙을 준수해 주세요!<br>PC: neocraft.p-e.kr<br>모바일: be.neocraft.p-e.kr:19132</div>
+        </div>
+        <div class="play-bar"><button class="play-btn" onclick="alert('서버 주소를 복사하세요!')">PLAY</button></div>
+    </div>
+
+    <script>
+        function openTab(id) {
+            document.querySelectorAll('.content-area, .tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        let manualStatus = localStorage.getItem('neo_manual_status') || 'auto';
+
+        async function updateStatus() {
+            const el = document.getElementById('status-display');
+            if (manualStatus === 'on') { setUI(el, true, "🟢 서버 온라인! (수동)"); return; }
+            if (manualStatus === 'off') { setUI(el, false, "🔴 서버 점검 중 (수동)"); return; }
+
+            try {
+                const res = await fetch(`https://api.mcstatus.io/v2/status/java/neocraft.p-e.kr?t=${Date.now()}`);
+                const data = await res.json();
+                setUI(el, data.online, data.online ? `🟢 서버 온라인! (${data.players.online}/${data.players.max})` : "🔴 서버 점검 중");
+            } catch { el.innerHTML = "🟡 연결 확인 불가"; }
+        }
+
+        function setUI(el, on, txt) { el.innerHTML = txt; el.style.color = on ? '#36ff36' : '#ff4444'; }
+        function setManualStatus(m) { manualStatus = m; localStorage.setItem('neo_manual_status', m); updateStatus(); alert(m + " 모드 적용!"); }
+        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+
+        // 관리자 진입 1: 키보드 'admin' 타이핑 🛫🐉💵
+        let buffer = "";
+        window.onkeydown = (e) => {
+            buffer += e.key.toLowerCase();
+            if (buffer.includes("admin")) { document.getElementById('admin-panel').style.display = 'block'; buffer = ""; }
+            if (buffer.length > 10) buffer = "";
+        };
+
+        // 관리자 진입 2: 로고 5번 클릭 🛫🐉💵
+        let clicks = 0;
+        function handleLogoClick() {
+            clicks++;
+            if (clicks >= 5) { document.getElementById('admin-panel').style.display = 'block'; clicks = 0; }
+            setTimeout(() => { clicks = 0; }, 2000);
+        }
+
+        updateStatus();
+        setInterval(updateStatus, 10000); // 10초마다 갱신
+    </script>
+</body>
+</html>
